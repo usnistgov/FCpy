@@ -164,7 +164,11 @@ FC.FC_poisson(10, 0.01, 100, conf= 0.95, useCorrection= True)
 
 ## Contact Information
 Evan Groopman <evan.groopman@nist.gov>
+
 Surface and Trace Chemical Analysis Group
+
 Materials Measurement Science Division (MMSD)
+
 Material Measurement Laboratory (MML)
+
 National Institute of Standards and Technology (NIST)
