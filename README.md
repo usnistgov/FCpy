@@ -27,20 +27,20 @@ FC.FC_poisson(5, 0.01, 1000, conf= 0.95, useCorrection= True)
 A convenience function calculates 68.3%, 95%, and 99.7% CIs:
 
 ```shell
-FC.FC_poisson123(5, 0.01, 1000)
+FC.FC_poisson123(5, 0.01, 1000, useCorrection= False)
 # [Out]: [(0.0, 0.27183253885023984), (0.0, 2.937061090328606), (0.0, 6.40224918079424)]
 ```
 
 Command-line usage (defaults to Poisson CI without correction):
 
 ```shell
-$ python -m FCpy 5 0.01 1000 0.95
+$ python -m FC 5 0.01 1000 0.95
 ```
 
 OR
 
 ```shell
-$ python FCpy.py 5 0.01 1000 0.95
+$ python FC.py 5 0.01 1000 0.95
 ```
 
 There is also a small GUI written in Python and Qt for calculating Poisson confidence intervals.
