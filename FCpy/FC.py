@@ -289,9 +289,8 @@ def FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4):
     #CL_high_rough will be ~ n0 + sqrt(n0)*sigma + 1
     #remove central murage that is pretty far outside this area. no need to calculate it
     if n0 >= 50: #set 50 as the limit for switching to Gaussian approx and reducing rough scan area
-        pad = 20
-        CL_low_rough = n0 - np.sqrt(n0)*sigma + 1 + pad*roughstep #set bar above CL_rough and remove in ebtween rough estimates
-        CL_high_rough = n0 + np.sqrt(n0)*sigma + 1 - pad*roughstep
+        CL_low_rough = n0 - np.sqrt(n0)*sigma + 1 + n0*roughstep #set bar above CL_rough and remove in ebtween rough estimates
+        CL_high_rough = n0 + np.sqrt(n0)*sigma + 1 - n0*roughstep
         murange = murange[(murange < CL_low_rough) | (murange > CL_high_rough)]
     
     
