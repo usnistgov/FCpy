@@ -233,10 +233,10 @@ def FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4):
     n0 : int
         Number of observed counts
     b : float
-        Mean background rate.
+        Mean background count rate (counts/s).
     t : float
-        Total measurement time.
-    conf : float < 1.0, optional
+        Total measurement time (s).
+    conf : float between [0,1.0], optional
         Confidence level to calulate. The default is 0.95.
     useCorrection : bool, optional
         Use the Roe & Woodroofe (1999) correction for low counts. The default is False.
