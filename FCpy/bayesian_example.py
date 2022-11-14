@@ -42,7 +42,7 @@ with pm.Model() as model:
     # perform sampling
     # need cores=1 for Spyder use, otherwise crashes
     # If running standalone, more cores can be used
-    data = pm.sample(5000, chains=3, tune=1000, target_accept=0.95, progressbar=True, cores=1)
+    data = pm.sample(5000, init='advi+adapt_diag', chains=3, tune=1000, target_accept=0.95, progressbar=True, cores=1)
     
 
 #%% Calculate CIs and plot trace results
