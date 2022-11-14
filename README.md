@@ -17,9 +17,15 @@ Further reading: see Coakley et al. (2010) Meas. Sci. Tech. 21, 035102 https://d
 from FCpy.FCpy import FC
 ```
 
+Function documentation:
 ```python
 def FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4):
     """
+    Feldman Cousins confidence level calculation for the Poisson case with known mean background.
+    
+    Uses numpy meshgrid to get all permutations of n and mu(+b) to avoid explicit loops.
+    Much much faster than for/while loops in Python.
+
     Parameters
     ----------
     n0 : int
@@ -37,17 +43,19 @@ def FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4):
         Calculation tolerance for mu. The default is 5E-4."""
 ```
 
+Calculate 95% Feldman-Cousins CI for 5 counts in 1000 s with mean background rate of 0.01 counts/s (no correction).
 ```python
 FC.FC_poisson(5, 0.01, 1000, conf= 0.95, useCorrection= False)
 # [Out]: array([0. , 2.93706109])
 ```
 
+95% CI with Roe & Woodroofe correction.
 ```python
 FC.FC_poisson(5, 0.01, 1000, conf= 0.95, useCorrection= True)
 # [Out]: array([0. , 4.76047702])
 ```
 
-A convenience function calculates 68.3%, 95%, and 99.7% CIs:
+A convenience function ```FC_poisson123()``` calculates 68.3%, 95%, and 99.7% CIs:
 
 ```python
 FC.FC_poisson123(5, 0.01, 1000, useCorrection= False)
@@ -73,7 +81,7 @@ There is also a small GUI written in Python and Qt for calculating Poisson confi
 
 Using ```%timeit``` magic command in IPython. All examples run on a Dell Latitute 5420 laptop with Intel i7-1185G7 processor @ 3.00GHz.
 
-Zero counts, zero background:
+Zero counts, zero background (compare no correction vs. correction):
 
 ```python
 %timeit FC.FC_poisson(0, 0, 100, conf= 0.95, useCorrection= False)
@@ -81,7 +89,7 @@ Zero counts, zero background:
 ```
 
 ```python
-%timeit FC.FC_poisson(0, 0, 100, conf= 0.95, useCorrection= False)
+%timeit FC.FC_poisson(0, 0, 100, conf= 0.95, useCorrection= True)
 # [Out]: 3.57 ms ± 109 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
 ```
 
@@ -105,7 +113,7 @@ Ten counts, background rate = 0.1:
 ```
 
 ```python
-%timeit FC.FC_poisson(10, 0.1, 100, conf= 0.95, useCorrection= False)
+%timeit FC.FC_poisson(10, 0.1, 100, conf= 0.95, useCorrection= True)
 # [Out]: 103 ms ± 1.53 ms per loop (mean ± std. dev. of 7 runs, 10 loops each)
 ```
 
@@ -121,12 +129,14 @@ Above 20 counts, the Roe & Woodroofe (1999) correction becomes much more computa
 # [Out]: 2.14 s ± 78.7 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 ```
 
-Even at a large number of counts where a Gaussian approximation would suffice (e.g., 1000), the calculation speed is not prohibitive:
+Even at a large number of counts where a Gaussian approximation would suffice (e.g., n0 = 1000), the calculation speed is not prohibitive:
 
 ```python
 %timeit FC.FC_poisson(1000, 0.1, 100, conf= 0.95, useCorrection= False)
 # [Out]: 1.48 s ± 72.8 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 ```
+
+The highly vectorized numpy implementation is very fast, and likely sufficient for most use cases. I made a numba implementation (not included in this package), however, the jit compile time far exceeded the time savings for one-off uses. Time savings were negligible when calculating up to 100 CIs. 
 
 
 ## Installation
@@ -161,6 +171,7 @@ Comparison of FC and Bayesian results:
 For 0 counts in 1000 s with mean background rate 0.01 +/- 0.0005 (5% relative error):
 Bayesian 95% HDI: 0.0003 3.097
 
+The FC CI:
 ```python
 FC.FC_poisson(0, 0.01, 1000, conf= 0.95, useCorrection= False)
 # [Out]: array([0. , 1.2619])
@@ -172,8 +183,9 @@ FC.FC_poisson(0, 0.01, 1000, conf= 0.95, useCorrection= True)
 ```
 
 For 10 counts in 100 s with mean background rate 0.01 +/- 0.0005 (5% relative error):
-Bayesian 95% HDI: 3.962 16.76
+Bayesian 95% HDI: 3.962 16.760
 
+The FC CI:
 ```python
 FC.FC_poisson(10, 0.01, 100, conf= 0.95, useCorrection= False)
 # [Out]: array([3.752, 16.816])
