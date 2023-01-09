@@ -121,7 +121,6 @@ def R_poisson(mu, b, n):
     Likelihood ratio for ordering.
 
     """
-    """"""
     return(Pn_mu(mu, b, n)/Pn_mu(np.maximum(0, n - b), b, n))
 
 #corrections based upon Roe & Woodroofe (1999). Poisson case only
@@ -289,7 +288,7 @@ def FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4):
     #CL_high_rough will be ~ n0 + sqrt(n0)*sigma + 1
     #remove central murage that is pretty far outside this area. no need to calculate it
     if n0 >= 50: #set 50 as the limit for switching to Gaussian approx and reducing rough scan area
-        CL_low_rough = n0 - np.sqrt(n0)*sigma + 1 + n0*roughstep #set bar above CL_rough and remove in ebtween rough estimates
+        CL_low_rough = n0 - np.sqrt(n0)*sigma + 1 + n0*roughstep #set bar above CL_rough and remove in between rough estimates
         CL_high_rough = n0 + np.sqrt(n0)*sigma + 1 - n0*roughstep
         murange = murange[(murange < CL_low_rough) | (murange > CL_high_rough)]
     
