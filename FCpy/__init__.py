@@ -1,7 +1,7 @@
 """ Python module for calculating Feldman-Cousins confidence intervals."""
 
 # from FCpy import FCpy
-from FCpy.FCpy import FCpy as FC
+from FCpy.FCpy import FC
 
 __version__ = '0.1.0'
 __pkgname__ = 'FCpy'
