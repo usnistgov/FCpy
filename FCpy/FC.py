@@ -499,6 +499,50 @@ def _getUpperCI(CL_high_rough, n0, bt, nn, conf= 0.95, roughstep= 0.1, tol= 5E-4
     CL_high = np.max(murange[grid[:,n0]])
     return(CL_high)
 
+def FC_poisson_confbands(nrange= [0,10], b= 0.0, t= 1, conf= 0.95, useCorrection= False, tol= 5E-4,
+                         useDask= True):
+    """
+    Generate upper and lower confidence bands for the range of given n values
+
+    Parameters
+    ----------
+    nrange : tuple, list, np.ndarray of ints
+        Range over which to generate confidence bands. The default is [0,10].
+    b : float, optional
+        Average background rate. The default is 0.0.
+    t : int, optional
+        Measurement time in seconds. Used to generate the average number of background counts. The default is 1.
+    conf : float, optional
+        Confidence interval in the range [0,1]. The default is 0.95.
+    useCorrection : bool, optional
+        Use Roe&Woodroofe(1999) correction. The default is False.
+    tol : float, optional
+        Numerical tolerance on the confidence band. The default is 5E-4.
+
+    Returns
+    -------
+    Nx2 np.ndarray where N is the number of integers in nrange
+
+    """
+    nrange = np.array(nrange).astype(int)
+    nn = np.arange(nrange[0], nrange[1]+1, dtype=int)
+    
+    if dask is not None and useDask:
+        results = []
+        for n0 in nn:
+            res = dask.delayed(_FC_poisson)(n0, b, t, conf, useCorrection, tol, False)
+            results.append(res)
+        results = np.array(dask.compute(*results))
+        results = np.vstack([nn, results.T]).T
+    else:
+        results = np.empty((len(nn),3))
+        for i, n0 in enumerate(nn):
+            results[i,0] = n0
+            results[i,1:] = _FC_poisson(n0, b, t, conf=conf, useCorrection=useCorrection, tol=tol, useDask= False)
+    
+    return(results)
+    
+
 def FC_poisson123(n0, b, t, useCorrection= False, tol=5E-4):
     """
     Convenience function for calculating 1-, 2-, and 3- sigma levels (Gaussian equivalent).
