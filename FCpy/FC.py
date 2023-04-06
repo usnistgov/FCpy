@@ -282,14 +282,14 @@ def FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4,
         if dask is not None:
             results = []
             for B in Bs:
-                res = dask.delayed(_FC_poisson)(n0, B, t, conf, useCorrection, tol)
+                res = dask.delayed(_FC_poisson)(n0, B, t, conf, useCorrection, tol, False)
                 results.append(res)
             results = np.array(dask.compute(*results))
             
         else:
             results = np.empty((nSteps, 2))
             for i, B in enumerate(Bs):
-                results[i,:] = _FC_poisson(n0, B, t, conf=conf, useCorrection=useCorrection, tol=tol)
+                results[i,:] = _FC_poisson(n0, B, t, conf=conf, useCorrection=useCorrection, tol=tol, useDask= False)
         
         CI = results[0,:]
         
@@ -303,10 +303,16 @@ def FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4,
         return(CI)
         
     else:
-        return(_FC_poisson(n0, b, t, conf=conf, useCorrection=useCorrection, tol=tol))
+        #swich on dask internally if high enough counts or RW correction is on.
+        if (n0 + b > 3) or useCorrection:
+            useDask = True
+        else:
+            useDask = False
+        return(_FC_poisson(n0, b, t, conf=conf, useCorrection=useCorrection, tol=tol, useDask= useDask))
     
         
-def _FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4):
+def _FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4,
+                useDask= True):
     """
     Feldman Cousins confidence level calculation for the Poisson case with known mean background.
     
@@ -410,13 +416,23 @@ def _FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4):
     CL_high_rough = muline.max()
     # print(CL_low_rough, CL_high_rough)
     
-
-    CL_low = _getLowerCI(CL_low_rough, n0, bt, nn, conf= conf, 
-                          roughstep= roughstep, tol= tol, 
-                          useCorrection= useCorrection)
-    CL_high = _getUpperCI(CL_high_rough, n0, bt, nn, conf= conf, 
-                          roughstep= roughstep, tol= tol, 
-                          useCorrection= useCorrection)
+    
+    if dask is not None and useDask:
+        CL_low = dask.delayed(_getLowerCI)(CL_low_rough, n0, bt, nn, conf, 
+                              roughstep, tol, useCorrection)
+        CL_high = dask.delayed(_getUpperCI)(CL_high_rough, n0, bt, nn, conf, 
+                              roughstep, tol, useCorrection)
+        results = dask.compute(CL_low, CL_high)
+        
+        CL_low, CL_high = results
+    else:
+        
+        CL_low = _getLowerCI(CL_low_rough, n0, bt, nn, conf= conf, 
+                              roughstep= roughstep, tol= tol, 
+                              useCorrection= useCorrection)
+        CL_high = _getUpperCI(CL_high_rough, n0, bt, nn, conf= conf, 
+                              roughstep= roughstep, tol= tol, 
+                              useCorrection= useCorrection)
 
     return(np.array([CL_low, CL_high]))
 
