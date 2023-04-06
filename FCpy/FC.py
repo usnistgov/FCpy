@@ -56,7 +56,12 @@ Benchmarks:
 
 import numpy as np
 from scipy.stats import norm
-from scipy.special import gammaln #factorial, 
+from scipy.special import gammaln #factorial
+
+try:
+    import dask
+except ModuleNotFoundError:
+    dask = None
 
 
 #FeldmanCousins(1998) Poisson definitions
@@ -219,8 +224,89 @@ def FC_gauss(x0, conf=0.95):
 
     return(CL_low_rough, CL_high_rough)
 
+   
+
+def FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4,
+               fixPathology= False, bRange=0.01, bStep= 0.001):
+    """
+    Feldman Cousins confidence level calculation for the Poisson case with known mean background.
     
-def FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4):
+    Uses numpy meshgrid to get all permutations of n and mu(+b) to avoid explicit loops.
+    Much much faster than for/while loops in Python.
+
+    Parameters
+    ----------
+    n0 : int
+        Number of observed counts
+    b : float
+        Mean background count rate (counts/s).
+    t : float
+        Total measurement time (s).
+    conf : float between [0,1.0], optional
+        Confidence level to calulate. The default is 0.95.
+    useCorrection : bool, optional
+        Use the Roe & Woodroofe (1999) correction for low counts. The default is False.
+        This is computationally more epxensive, especially for n0 > ~30
+    tol : float, optional
+        Calculation tolerance for mu. The default is 5E-4.
+    fixPathology : bool, optional
+        Feldman-Cousins noted that a mild pathology occurs for fixed n0 with varying b.
+        This searches the neighborhood of b and ensures that the upper CI limit is 
+        monotonically decreasing as a function of b across the search range.
+    bRange : float, optional
+        Range over which to search for pathology np.clip([b - bRange, b + bRange], 0, None)
+    bStep : float, optional
+        Step size to use in pathology search
+
+    Returns
+    -------
+    np.ndarray([CI lower limit, CI upper limit])
+
+    """
+    
+    if fixPathology:
+        
+        bRange = abs(bRange); bStep = abs(bStep)
+        if bRange < bStep:
+            bRange = bStep
+            
+        # bMin, bMax = np.clip([b - bRange, b + bRange], 0, None)
+        # nSteps = int((bMax-bMin)/bStep)
+        # Bs = np.linspace(bMin, bMax, num=nSteps, endpoint=True)
+        # insert real value at index
+        # ind = np.searchsorted(Bs, b)
+        # Bs = np.insert(Bs, ind, b)
+        nSteps = np.maximum(int(bRange/bStep), 2) #ensure at least 2 steps
+        Bs = np.linspace(b, b + bRange, num=nSteps, endpoint=True)
+        
+        if dask is not None:
+            results = []
+            for B in Bs:
+                res = dask.delayed(_FC_poisson)(n0, B, t, conf, useCorrection, tol)
+                results.append(res)
+            results = np.array(dask.compute(*results))
+            
+        else:
+            results = np.empty((nSteps, 2))
+            for i, B in enumerate(Bs):
+                results[i,:] = _FC_poisson(n0, B, t, conf=conf, useCorrection=useCorrection, tol=tol)
+        
+        CI = results[0,:]
+        
+        #check if monotonically decreasing after b
+        diffCheck = (results[1:, 1] - results[:-1,1]) > 0
+        if np.any(diffCheck):
+            ind = np.where(diffCheck)[0]
+            CIup = results[ind][1]
+            if CIup > CI[1]:
+                CI[1] = CIup
+        return(CI)
+        
+    else:
+        return(_FC_poisson(n0, b, t, conf=conf, useCorrection=useCorrection, tol=tol))
+    
+        
+def _FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4):
     """
     Feldman Cousins confidence level calculation for the Poisson case with known mean background.
     
