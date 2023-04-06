@@ -28,7 +28,8 @@ with pm.Model() as model:
     
     ### Priors ###
     bkgd_counts = pm.TruncatedNormal('bkgd_counts', mu=bkgd_rate*time, sigma= bkgd_sig*time, lower=0.0) #lower limit at 0
-    counts = pm.Uniform('counts', 0, 1E6) #upper limit is arbitrary
+    #use TruncatedNormal prior for counts that is relatively wide (flat)
+    counts = pm.TruncatedNormal('counts', mu=0.5, sigma=10, lower=0.0) #lower limit at 0. select appropriate mu and sigma as needed.
     
     # Total counts from both processes
     counts_tot = counts + bkgd_counts
