@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """ Setuptools setup file for FCpy. """
 from setuptools import setup, find_packages
-from FCpy.FCpy.__init__ import (__version__, __pkgname__, __author__,
+from FCpy.__init__ import (__version__, __pkgname__, __author__,
                            __url__, __license__, __description__)
 
 with open('README.md', mode='rt', encoding='utf-8') as fh:
