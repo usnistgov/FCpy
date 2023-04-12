@@ -79,7 +79,7 @@ There is also a small GUI written in Python and Qt for calculating Poisson confi
 
 ## Benchmarks
 
-Using ```%timeit``` magic command in IPython. All examples run on a Dell Latitute 5420 laptop with Intel i7-1185G7 processor @ 3.00GHz.
+Using ```%timeit``` magic command in IPython. All examples run on a Dell Latitude 5420 laptop with Intel i7-1185G7 processor @ 3.00GHz.
 
 Zero counts, zero background (compare no correction vs. correction):
 
