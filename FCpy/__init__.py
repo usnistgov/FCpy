@@ -1,9 +1,9 @@
 """ Python module for calculating Feldman-Cousins confidence intervals."""
 
 try:
-    import FCpy.FCpy as FC
+    from FCpy.FCpy import FC
 except ModuleNotFoundError:
-    import FCpy as FC
+    import FCpy.FC as FC
 
 __version__ = '0.1.1'
 __pkgname__ = 'FCpy'
