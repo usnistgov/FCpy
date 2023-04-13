@@ -227,6 +227,7 @@ def FC_gauss(x0, conf=0.95):
    
 
 def FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4,
+               mumin= None, mumax= None,
                fixPathology= False, bRange=0.01, bStep= 0.001):
     """
     Feldman Cousins confidence level calculation for the Poisson case with known mean background.
@@ -249,6 +250,10 @@ def FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4,
         This is computationally more epxensive, especially for n0 > ~30
     tol : float, optional
         Calculation tolerance for mu. The default is 5E-4.
+    mumin : float or None, optional
+        If given, provide the minimum mu value to search. Otherwise, one selected automatically.
+    mumax : float or None, optional
+        If given, provide the maximum mu value to search. Otherwise, one selected automatically.
     fixPathology : bool, optional
         Feldman-Cousins noted that a mild pathology occurs for fixed n0 with varying b.
         This searches the neighborhood of b and ensures that the upper CI limit is 
@@ -258,6 +263,7 @@ def FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4,
     bStep : float, optional
         Step size to use in pathology search
 
+        
     Returns
     -------
     np.ndarray([CI lower limit, CI upper limit])
@@ -282,14 +288,16 @@ def FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4,
         if dask is not None:
             results = []
             for B in Bs:
-                res = dask.delayed(_FC_poisson)(n0, B, t, conf, useCorrection, tol, False)
+                res = dask.delayed(_FC_poisson)(n0, B, t, conf, useCorrection, tol, mumin, mumax, False)
                 results.append(res)
             results = np.array(dask.compute(*results))
             
         else:
             results = np.empty((nSteps, 2))
             for i, B in enumerate(Bs):
-                results[i,:] = _FC_poisson(n0, B, t, conf=conf, useCorrection=useCorrection, tol=tol, useDask= False)
+                results[i,:] = _FC_poisson(n0, B, t, conf=conf, useCorrection=useCorrection, tol=tol,
+                                           mumin= mumin, mumax= mumax,
+                                           useDask= False)
         
         CI = results[0,:]
         
@@ -308,11 +316,12 @@ def FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4,
             useDask = True
         else:
             useDask = False
-        return(_FC_poisson(n0, b, t, conf=conf, useCorrection=useCorrection, tol=tol, useDask= useDask))
+        return(_FC_poisson(n0, b, t, conf=conf, useCorrection=useCorrection, tol=tol, 
+                           mumin= mumin, mumax= mumax, useDask= useDask))
     
         
 def _FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4,
-                useDask= True):
+                 mumax= None, mumin= None, useDask= True):
     """
     Feldman Cousins confidence level calculation for the Poisson case with known mean background.
     
@@ -334,7 +343,13 @@ def _FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4,
         This is computationally more epxensive, especially for n0 > ~30
     tol : float, optional
         Calculation tolerance for mu. The default is 5E-4.
-
+    mumin : float or None, optional
+        If given, provide the minimum mu value to search. Otherwise, one selected automatically.
+    mumax : float or None, optional
+        If given, provide the maximum mu value to search. Otherwise, one selected automatically.
+    useDask : bool, optional
+        Use dask package, if available, to speed up some parallel computations
+        
     Returns
     -------
     np.ndarray([CI lower limit, CI upper limit])
@@ -347,14 +362,20 @@ def _FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4,
     
     sigma = abs(norm.ppf((1-conf)/2))
     
+
+    
     # mumax = n0+b + 5*np.sqrt(n0+b)
     if n0 + bt <= 3:
-        mumax = 11.0
-        mumin = 0.0
+        if mumax is None:
+            mumax = 11.0
+        if mumin is None:
+            mumin = 0.0
     else:
         #scale by the desired conf?
-        mumax = n0 + bt + 5*np.sqrt(n0+bt)
-        mumin = np.maximum(0, n0 - 5*np.sqrt(n0)) #when looking for mu lower limit, need to ignore contribution from b
+        if mumax is None:
+            mumax = n0 + bt + 5*np.sqrt(n0+bt)
+        if mumin is None:
+            mumin = np.maximum(0, n0 - 5*np.sqrt(n0)) #when looking for mu lower limit, need to ignore contribution from b
     
     #first do a coarse scan to find approximate locations of CLs
     #then do smaller scans near limits with precision of tol
@@ -365,15 +386,17 @@ def _FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4,
     murange = np.linspace(mumin, mumax, steps)
     
     if n0 <= 100:
+        minn = 0
         maxn = (2*n0 + 16 + bt)
         if conf > 0.95:
             maxn *= (sigma/1.96) #is later rounded to nearest int
             maxn = int(maxn)
     else:
+        minn = 0
         #this seems to work
         maxn = 1.75*n0 + bt
     
-    nn = np.arange(0, maxn, dtype=int)
+    nn = np.arange(minn, maxn, dtype=int) #could collapse further using estimated minn
     
     #if n is large enough, can really collapse this grid by using a Gaussian approximation of the CLs
     #CL_low_rough will be ~ n0 - sqrt(n0)*sigma + 1
