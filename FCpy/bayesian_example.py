@@ -16,9 +16,9 @@ import pymc as pm
 
 #%%
 
-bkgd_rate = 0.01
+bkgd_rate = 0.0
 bkgd_sig = 0.0005 # 5% relative error
-time = 100 # seconds
+time = 400 # seconds
 n = 10 #number of observed counts in [time]
 
 with pm.Model() as model:
