@@ -675,6 +675,62 @@ def FC_poisson123(n0, b, t, useCorrection= False, tol=5E-4):
         CIs.append((CL_low, CL_high))
     
     return(CIs)
+
+def FC_poisson_list(n= [0], b= 0.0, t= [1], conf= 0.95, useCorrection= False, tol= 5E-4,
+                         useDask= True):
+    """
+    Generate CIs for a list of n, t, and conf values.
+
+    Parameters
+    ----------
+    n : int, tuple, list, np.ndarray of ints
+        Collection of n values to calculate. The default is [0].
+    b : float, (optional)
+        Average background rate. The default is 0.0.
+    t : int, float, tuple, list, ndarray (optional)
+        Measurement time in seconds. If an int/float, the same value is used for all n.
+        Otherwise must be the same length as n.
+        Used to generate the average number of background counts. The default is 1.
+    conf : float, (optional)
+        Confidence interval in the range [0,1]. The default is 0.95.
+    useCorrection : bool, (optional)
+        Use Roe&Woodroofe(1999) correction. The default is False.
+    tol : float, (optional)
+        Numerical tolerance on the confidence band. The default is 5E-4.
+
+    Returns
+    -------
+    Nx2 np.ndarray where N is the number of n
+
+    """
+    
+    if isinstance(n, (int, float)):
+        n = int(n)
+        if isinstance(t, (list, tuple, np.ndarray)):
+            raise ValueError('cannot compute with multiple t values for a single n')
+    elif isinstance(n, (list, tuple, np.ndarray)):
+        n = np.asarray(n, dtype=int)
+        if isinstance(t, (list, tuple, np.ndarray)):
+            t = np.asarray(t, dtype=float)
+            if len(t) != len(n):
+                raise ValueError('n and t have different shapes: {} {}'.format(n.shape, t.shape))
+        else:
+            t = np.ones_like(n, dtype=float) * t
+
+    if dask is not None and useDask:
+        results = []
+        for n0, t0 in zip(n,t):
+            res = dask.delayed(_FC_poisson)(n0, b, t0, conf, useCorrection, tol)
+            results.append(res)
+        results = np.array(dask.compute(*results))
+        # results = np.vstack([n, results.T]).T
+    else:
+        results = np.empty((len(n),2))
+        for i, (n0,t0) in enumerate(zip(n,t)):
+            # results[i,0] = n0
+            results[i,:] = _FC_poisson(n0, b, t0, conf=conf, useCorrection=useCorrection, tol=tol)
+    
+    return(results)
     
 if __name__ == "__main__":
     #command line usage
