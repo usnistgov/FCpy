@@ -57,6 +57,7 @@ Benchmarks:
 import numpy as np
 from scipy.stats import norm
 from scipy.special import gammaln #factorial
+import warnings
 
 try:
     import dask
@@ -456,6 +457,14 @@ def _FC_poisson(n0, b, t, conf=0.95, useCorrection= False, tol=5E-4,
         CL_high = _getUpperCI(CL_high_rough, n0, bt, nn, conf= conf, 
                               roughstep= roughstep, tol= tol, 
                               useCorrection= useCorrection)
+    
+    #raise warning if CL_low and CL_high are at the limits of mumax and mumin
+    if CL_high >= mumax:
+        warnings.warn('The upper limit is constrained by mumax = {} and may not be correct. Increase mumax or set to None.'.format(mumax),
+                      category=RuntimeWarning)
+    if CL_low <= mumin and mumin > 0:
+        warnings.warn('The lower limit is constrained by mumin = {} and may not be correct. Lower mumin or set to None.'.format(mumin),
+                      category=RuntimeWarning)
 
     return(np.array([CL_low, CL_high]))
 
