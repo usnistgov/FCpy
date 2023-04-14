@@ -723,11 +723,9 @@ def FC_poisson_list(n= [0], b= 0.0, t= [1], conf= 0.95, useCorrection= False, to
             res = dask.delayed(_FC_poisson)(n0, b, t0, conf, useCorrection, tol)
             results.append(res)
         results = np.array(dask.compute(*results))
-        # results = np.vstack([n, results.T]).T
     else:
         results = np.empty((len(n),2))
         for i, (n0,t0) in enumerate(zip(n,t)):
-            # results[i,0] = n0
             results[i,:] = _FC_poisson(n0, b, t0, conf=conf, useCorrection=useCorrection, tol=tol)
     
     return(results)
