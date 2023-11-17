@@ -5,7 +5,7 @@ try:
 except ModuleNotFoundError:
     import FCpy.FC as FC
 
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 __pkgname__ = 'FCpy'
 __author__ = 'Evan Groopman'
 __url__ = 'https://github.com/usnistgov/FCpy'
@@ -14,6 +14,9 @@ __copyright__ = ''
 __description__ = __doc__
 
 _changelog = """
+Version 0.1.3:
+    - Add FC_poisson_sensitivity(...) for calculating sensitivity.
+    
 Version 0.1.2:
     - Add convenience function FC_poisson_confband() for calculating confidence band for a range of n.
     - Convenience function FC_poisson_list() for calculating a list of n and t values.

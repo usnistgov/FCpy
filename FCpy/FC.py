@@ -697,6 +697,8 @@ def FC_poisson_list(n= [0], b= 0.0, t= [1], conf= 0.95, useCorrection= False, to
         Use Roe&Woodroofe(1999) correction. The default is False.
     tol : float, (optional)
         Numerical tolerance on the confidence band. The default is 5E-4.
+    useDask : bool, (optional)
+        Optional parallelism.
 
     Returns
     -------
@@ -729,6 +731,46 @@ def FC_poisson_list(n= [0], b= 0.0, t= [1], conf= 0.95, useCorrection= False, to
             results[i,:] = _FC_poisson(n0, b, t0, conf=conf, useCorrection=useCorrection, tol=tol)
     
     return(results)
+
+def FC_poisson_sensitivity(bkgd_counts, conf=0.95, useCorrection=False, sigmaRange=4, useDask= False):
+    """
+    Calculate the sensitvity of a measurement with fewer than expected background counts.
+    Calculates the average upper limit from an ensemble of experiments with the expected
+    background and no true signal.
+    
+    The Poisson PMF for the expected background counts is calculated from 0 up to
+    bkgd_counts + sigmaRange*sqrt(bkgd_counts). The weighted average of this PMF
+    with the FC_Poisson UL at each integer number of hypothetically observed counts
+    is returned.
+    
+
+    Parameters
+    ----------
+    bkgd_counts : float
+        Number of expected average background counts during measurement. 
+    conf : float, (optional)
+        Confidence interval in the range [0,1]. The default is 0.95.
+    useCorrection : bool, (optional)
+        Use Roe&Woodroofe(1999) correction. The default is False.
+    sigmaRange : float, (optional)
+        Range of Poisson PMF above expected bkgd_counts to include in calculation.
+        Minimum range of calculated counts is [0,4]
+    useDask : bool, (optional)
+        Optional parallelism. Default False.
+    
+    Returns
+    -------
+    sensitivity: float
+
+    """
+    
+    upperRange = np.maximum(5, bkgd_counts + sigmaRange*np.sqrt(bkgd_counts) + 1)
+    xx = np.arange(0, upperRange)
+    pmf = poissonPMF(xx, np.ones_like(xx)*bkgd_counts)
+    CLs = FC_poisson_list(n=xx, b=bkgd_counts, t=[1]*len(xx), conf=conf, 
+                             useCorrection= useCorrection, useDask= useDask)
+    ULs = CLs[:,1]
+    return(np.average(ULs, weights=pmf))
     
 if __name__ == "__main__":
     #command line usage
