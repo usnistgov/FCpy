@@ -108,7 +108,7 @@ There is also a small GUI written in Python and Qt for calculating Poisson confi
 
 The image below shows a comparison of confidence bands using the Feldman-Cousins (FC), Roe-Woodroofe (RW), and Bayesian methods for different average detector background rates over a 400 s measurement. On the Large-Geometry Secondary Ion Mass Spectrometer at NIST, the long-term average electron multiplier detector background is 0.0013 counts/s. All three methods are in general agreement until the number of background counts is comparable to or larger than the signal of interest. Oddly, there is a pathology in the RW correction for n = 4 at this background level, but otherwise it finds good agreement with the Bayesian model. The FC method underestimates the low-count CI in the right panel.
 
-![Confidence band comparison](https://github.com/usnistgov/FCpy/tree/main/doc/images/FCpy_execTime.png?raw=True)
+![Confidence band comparison](https://github.com/usnistgov/FCpy/tree/main/doc/images/CI_compare.png?raw=True)
 
 
 ## Benchmarks
@@ -267,3 +267,9 @@ Materials Measurement Science Division (MMSD)
 Material Measurement Laboratory (MML)
 
 National Institute of Standards and Technology (NIST)
+
+
+## Citation
+Please cite the software if you use it in your publication.
+
+Groopman, E. (2023). FCpy (Version _) \[Computer Software\]. https://doi.org/10.18434/mds2-2755
