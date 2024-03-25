@@ -10,7 +10,13 @@ Created on Mon Apr 25 13:40:17 2022
 import pytest
 import numpy as np
 
-from FCpy.FCpy import FCpy as FC
+#local import
+try:
+    import FCpy.FCpy as FC
+except ModuleNotFoundError:
+    import FCpy.FC as FC
+except ModuleNotFoundError:
+    import FC
 
 def test_FC_poisson():
     assert np.all(FC.FC_poisson(0,0,0, conf=0.95, useCorrection= False).round(3) == np.array([0.   , 3.092]))

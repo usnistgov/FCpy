@@ -16,10 +16,10 @@ import pymc as pm
 
 #%%
 
-bkgd_rate = 0.0
-bkgd_sig = 0.0005 # 5% relative error
-time = 400 # seconds
-n = 10 #number of observed counts in [time]
+bkgd_rate = (1000.*10)/(3600.*10)
+bkgd_sig = np.sqrt(1000*10)/(3600*10)
+time = 3600 # seconds
+n = 1200 #number of observed counts in [time]
 
 with pm.Model() as model:
     # since we have observed counts and known background rate, convert everything to counts to start
@@ -29,7 +29,7 @@ with pm.Model() as model:
     ### Priors ###
     bkgd_counts = pm.TruncatedNormal('bkgd_counts', mu=bkgd_rate*time, sigma= bkgd_sig*time, lower=0.0) #lower limit at 0
     #use TruncatedNormal prior for counts that is relatively wide (flat)
-    counts = pm.TruncatedNormal('counts', mu=0.5, sigma=10, lower=0.0) #lower limit at 0. select appropriate mu and sigma as needed.
+    counts = pm.TruncatedNormal('counts', mu=0.5, sigma=500, lower=0.0) #lower limit at 0. select appropriate mu and sigma as needed.
     
     # Total counts from both processes
     counts_tot = counts + bkgd_counts
@@ -43,7 +43,7 @@ with pm.Model() as model:
     # perform sampling
     # need cores=1 for Spyder use, otherwise crashes
     # If running standalone, more cores can be used
-    data = pm.sample(5000, init='advi+adapt_diag', chains=3, tune=1000, target_accept=0.95, progressbar=True, cores=1)
+    data = pm.sample(4000, init='advi+adapt_diag', chains=8, tune=2000, target_accept=0.95, progressbar=True, cores=1)
     
 
 #%% Calculate CIs and plot trace results

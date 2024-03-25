@@ -18,7 +18,9 @@ import numpy as np
 try:
     import FCpy.FCpy as FC
 except ModuleNotFoundError:
-    import FCpy as FC
+    import FCpy.FC as FC
+except ModuleNotFoundError:
+    import FC
 
 #convenience loader function
 def loadUI_N(parentPath, relativePath, parent= None):

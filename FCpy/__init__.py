@@ -4,6 +4,8 @@ try:
     from FCpy.FCpy import FC
 except ModuleNotFoundError:
     import FCpy.FC as FC
+except ModuleNotFoundError:
+    import FC
 
 __version__ = '0.1.3'
 __pkgname__ = 'FCpy'

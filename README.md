@@ -14,7 +14,7 @@ Further reading: see Coakley et al. (2010) Meas. Sci. Tech. 21, 035102 https://d
 ## Usage:
 
 ```python
-from FCpy.FCpy import FC
+import FC
 ```
 
 Function documentation:
