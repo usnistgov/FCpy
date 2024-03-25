@@ -183,13 +183,14 @@ def FC_gauss(x0, conf=0.95):
     only use for small x0 < 10!"""
     #this is not optimized, but it works and relatively quickly. FC_poisson is much faster with better searching
     #based on the definition of gaussian() above, sigma = 1
-    sigma = 1
+    sigma = 4
     
     xmax = np.clip(x0 + 5*sigma, 3, 10)
     xmin = np.clip(x0 - 4*sigma, -10, None)
     # xmax = 5
     # xmin = -4
     roughstep = 0.01
+
     nsteps = np.maximum(10, int((xmax-xmin)/roughstep))
     xx = np.linspace(xmin, xmax, nsteps)
     #add in x0 so it's always there in xx
