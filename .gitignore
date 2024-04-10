@@ -136,6 +136,9 @@ dmypy.json
 # pytype static type analyzer
 .pytype/
 
+# batch files
+*.bat
+
 # Cython debug symbols
 cython_debug/
 FCpy.zip
