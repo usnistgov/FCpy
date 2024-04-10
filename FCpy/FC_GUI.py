@@ -16,11 +16,11 @@ import numpy as np
 
 #local import
 try:
-    import FCpy.FCpy as FC
-except ModuleNotFoundError:
-    import FCpy.FC as FC
+    from FCpy.FCpy import FC
 except ModuleNotFoundError:
     import FC
+except ModuleNotFoundError:
+    from FCpy import FC
 
 #convenience loader function
 def loadUI_N(parentPath, relativePath, parent= None):
@@ -171,7 +171,6 @@ if __name__ == '__main__':
         app = QtWidgets.QApplication(sys.argv)
     else:
         app = QtWidgets.QApplication.instance()
-    app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)  #enable scaling for high dpi monitors
     app.setOrganizationName("National Institute of Standards and Technology")
     app.setOrganizationDomain("evan.groopman@nist.gov")
     app.setApplicationName("FC Poisson Calculations")
