@@ -533,6 +533,7 @@ def _getUpperCI(CL_high_rough, n0, bt, nn, conf= 0.95, roughstep= 0.1, tol= 5E-4
     return(CL_high)
 
 def FC_poisson_confbands(nrange= [0,10], b= 0.0, t= 1, conf= 0.95, useCorrection= False, tol= 5E-4,
+                         mumax= None, mumin= None,
                          useDask= True):
     """
     Generate upper and lower confidence bands for the range of given n values
@@ -559,11 +560,19 @@ def FC_poisson_confbands(nrange= [0,10], b= 0.0, t= 1, conf= 0.95, useCorrection
     """
     nrange = np.array(nrange).astype(int)
     nn = np.arange(nrange[0], nrange[1]+1, dtype=int)
+    if mumax is None or isinstance(mumax, (float, int)):
+        mumax = [mumax]*len(nn)
+    if mumin is None or isinstance(mumin, (float, int)):
+        mumin = [mumin]*len(nn)
+    
+    assert(len(nn) == len(mumin))
+    assert(len(nn) == len(mumax))
+        
     
     if dask is not None and useDask:
         results = []
-        for n0 in nn:
-            res = dask.delayed(_FC_poisson)(n0, b, t, conf, useCorrection, tol, False)
+        for i, n0 in enumerate(nn):
+            res = dask.delayed(_FC_poisson)(n0, b, t, conf, useCorrection, tol, mumax[i], mumin[i], False)
             results.append(res)
         results = np.array(dask.compute(*results))
         results = np.vstack([nn, results.T]).T
@@ -571,7 +580,7 @@ def FC_poisson_confbands(nrange= [0,10], b= 0.0, t= 1, conf= 0.95, useCorrection
         results = np.empty((len(nn),3))
         for i, n0 in enumerate(nn):
             results[i,0] = n0
-            results[i,1:] = _FC_poisson(n0, b, t, conf=conf, useCorrection=useCorrection, tol=tol, useDask= False)
+            results[i,1:] = _FC_poisson(n0, b, t, conf=conf, useCorrection=useCorrection, tol=tol, mumax=mumax[i], mumin=mumin[i], useDask= False)
     
     return(results)
     
